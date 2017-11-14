@@ -15,7 +15,7 @@ import UIKit
  - _: UIView (in most cases with a transparent background in order to not hide the CardTextField)
     - cardImageView: UIImageView
     - CardNumberInputTextField (for entering a card number)
-    - cardInfoView: UIView (container for other views to enter additional information after entering a valid card number) with subviews ordered from left to right:
+ - cardInfoView: UIView (container for other views to enter additional information after entering a valid card number) with subviews ordered from left to right:
         - monthTextField: StylizedTextField
         - yearTextField: StylizedTextField
         - cvcTextField: StylizedTextField
@@ -64,7 +64,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
     /// The image store for the card number text field.
     open var cardTypeImageStore: CardTypeImageStore = Bundle(for: CardTextField.self)
 
-    open var cardTextFieldDelegate: CardTextFieldDelegate? {
+    open weak var cardTextFieldDelegate: CardTextFieldDelegate? {
         didSet {
             setupAccessoryButton()
         }
@@ -100,7 +100,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
     /**
      The label which is used as separator inbetween the text fields for month and year of the card expiry.
      */
-    @IBOutlet weak var slashLabel: UILabel!
+    @IBOutlet public weak var slashLabel: UILabel!
     
     /**
      The view constraint which insets the card image view from its superview's leading edge.
@@ -266,7 +266,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
     /**
      Updates the view after the locale did change to potentially switch between left to right and right to left reading style.
      */
-    internal func localeDidChange() {
+    @objc internal func localeDidChange() {
         setupView()
     }
     
@@ -314,7 +314,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
         
         setupTextFieldDelegates()
         setupTextFieldAttributes()
-        setupTargetsForEditinBegin()
+        setupTargetsForEditingBegin()
         setupAccessoryButton()
         setupAccessibilityLabels()
     }
@@ -333,21 +333,21 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
         numberInputTextField?.cardNumberSeparator = cardNumberSeparator ?? " - "
         numberInputTextField?.placeholder = placeholder
         
-        cvcTextField?.deleteBackwardCallback = {_ -> Void in
-            if self.hideExpiryTextFields {
-                self.numberInputTextField.becomeFirstResponder()
+        cvcTextField?.deleteBackwardCallback = { [weak self] _ in
+            if self?.hideExpiryTextFields == true {
+                self?.numberInputTextField.becomeFirstResponder()
             } else {
-                self.yearTextField?.becomeFirstResponder()
+                self?.yearTextField?.becomeFirstResponder()
             }
         }
-        monthTextField?.deleteBackwardCallback = {_ -> Void in
-            self.numberInputTextField?.becomeFirstResponder()
+        monthTextField?.deleteBackwardCallback = { [weak self] _ in
+            self?.numberInputTextField?.becomeFirstResponder()
         }
-        yearTextField?.deleteBackwardCallback = {_ -> Void in
-            if self.hideExpiryTextFields {
-                self.numberInputTextField.becomeFirstResponder()
+        yearTextField?.deleteBackwardCallback = { [weak self] _ in
+            if self?.hideExpiryTextFields == true {
+                self?.numberInputTextField.becomeFirstResponder()
             } else {
-                self.monthTextField?.becomeFirstResponder()
+                self?.monthTextField?.becomeFirstResponder()
             }
         }
         
@@ -398,7 +398,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
     /**
      Adds a callback to `numberInputTextField`, `monthTextField` and `yearTextField` to show the card type image in `cardImageView` when editing on any of these text fields began. Adds a callback to cvcTextField to show the CVC image in this view in this case.
      */
-    private func setupTargetsForEditinBegin() {
+    private func setupTargetsForEditingBegin() {
         // Show the full number text field, if editing began on it
         numberInputTextField?.addTarget(self, action: #selector(moveCardNumberInAnimated), for: UIControlEvents.editingDidBegin)
         
@@ -411,7 +411,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
     /**
      Function that is called when the user tapped on the optionally provided accessory button and performs its designated action.
      */
-    internal func buttonReceivedAction() {
+    @objc internal func buttonReceivedAction() {
         cardTextFieldDelegate?.cardTextFieldShouldProvideAccessoryAction(self)?()
     }
     
@@ -519,7 +519,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
     /**
      Displays the card image for the currently detected card type in the card text field's `cardImageView`.
      */
-    internal func showCardImage() {
+    @objc internal func showCardImage() {
         let cardType = cardTypeRegister.cardType(for: numberInputTextField.cardNumber)
         let cardTypeImage = cardTypeImageStore.image(for: cardType)
 
@@ -529,7 +529,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
     /**
      Displays the CVC image for the currently detected card type in the card text field's `cardImageView`.
      */
-    internal func showCVCImage() {
+    @objc internal func showCVCImage() {
         let cardType = cardTypeRegister.cardType(for: numberInputTextField.cardNumber)
         let cvcImage = cardTypeImageStore.cvcImage(for: cardType)
         
