@@ -602,7 +602,7 @@ open class CardTextField: UITextField, NumberInputTextFieldDelegate {
         // Return false if any of this text field's subviews is already first responder. 
         // Otherwise let `numberInputTextField` become the first responder.
         if [numberInputTextField,monthTextField,yearTextField,cvcTextField]
-            .flatMap({return $0.isFirstResponder})
+            .compactMap({return $0.isFirstResponder})
             .reduce(true, {$0 && $1}) {
             return false
         }
